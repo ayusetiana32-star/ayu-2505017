@@ -32,6 +32,29 @@ class Task extends Model
         ];
     }
 
+    public function getTimeRemainingAttribute(): string
+    {
+        $deadline = $this->deadline->copy()->locale('id');
+        $difference = $deadline->diffForHumans(now(), true);
+
+        return $deadline->isPast()
+            ? "Terlambat {$difference}"
+            : "{$difference} lagi";
+    }
+
+    public function getDeadlineBadgeClassAttribute(): string
+    {
+        if ($this->deadline->isPast() || $this->deadline->isToday()) {
+            return 'bg-red-100 text-red-800';
+        }
+
+        if (now()->diffInHours($this->deadline, false) <= 72) {
+            return 'bg-amber-100 text-amber-800';
+        }
+
+        return 'bg-green-100 text-green-800';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
