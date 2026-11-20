@@ -8,6 +8,7 @@ use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TaskController extends Controller
@@ -16,12 +17,31 @@ class TaskController extends Controller
     {
         Gate::authorize('viewAny', Task::class);
 
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'course_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('courses', 'id')->where('user_id', $request->user()->id),
+            ],
+            'status' => ['nullable', Rule::in(['belum', 'proses', 'selesai'])],
+            'priority' => ['nullable', Rule::in(['rendah', 'sedang', 'tinggi'])],
+            'deadline_order' => ['nullable', Rule::in(['asc', 'desc'])],
+        ]);
+
         return view('tasks.index', [
             'tasks' => $request->user()
                 ->tasks()
                 ->with('course')
-                ->orderBy('deadline')
-                ->paginate(12),
+                ->search($filters['search'] ?? null)
+                ->forCourse(isset($filters['course_id']) ? (string) $filters['course_id'] : null)
+                ->withStatus($filters['status'] ?? null)
+                ->withPriority($filters['priority'] ?? null)
+                ->deadlineOrder($filters['deadline_order'] ?? 'asc')
+                ->paginate(12)
+                ->withQueryString(),
+            'courses' => $request->user()->courses()->orderBy('name')->get(),
+            'filters' => $filters,
         ]);
     }
 

@@ -20,14 +20,85 @@
                 </div>
             @endif
 
+            <form method="GET" action="{{ route('tasks.index') }}" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+                    <div class="xl:col-span-2">
+                        <label for="search" class="block text-sm font-medium text-gray-700">Cari judul tugas</label>
+                        <input id="search" name="search" type="search" value="{{ $filters['search'] ?? '' }}" maxlength="100"
+                            placeholder="Masukkan judul..."
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label for="course_id" class="block text-sm font-medium text-gray-700">Mata Kuliah</label>
+                        <select id="course_id" name="course_id"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Semua mata kuliah</option>
+                            @foreach ($courses as $course)
+                                <option value="{{ $course->id }}" @selected((string) ($filters['course_id'] ?? '') === (string) $course->id)>
+                                    {{ $course->code }} — {{ $course->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Semua status</option>
+                            @foreach (['belum' => 'Belum', 'proses' => 'Proses', 'selesai' => 'Selesai'] as $value => $label)
+                                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="priority" class="block text-sm font-medium text-gray-700">Prioritas</label>
+                        <select id="priority" name="priority"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Semua prioritas</option>
+                            @foreach (['rendah' => 'Rendah', 'sedang' => 'Sedang', 'tinggi' => 'Tinggi'] as $value => $label)
+                                <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="deadline_order" class="block text-sm font-medium text-gray-700">Urutkan deadline</label>
+                        <select id="deadline_order" name="deadline_order"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="asc" @selected(($filters['deadline_order'] ?? 'asc') === 'asc')>Terdekat</option>
+                            <option value="desc" @selected(($filters['deadline_order'] ?? '') === 'desc')>Terjauh</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end gap-3">
+                    <a href="{{ route('tasks.index') }}"
+                        class="inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                        Reset
+                    </a>
+                    <button type="submit"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Terapkan Filter
+                    </button>
+                </div>
+            </form>
+
             @if ($tasks->isEmpty())
                 <div class="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-900">Belum ada tugas</h3>
-                    <p class="mt-2 text-sm text-gray-500">Tambahkan tugas dan tenggatnya agar mudah dipantau.</p>
-                    <a href="{{ route('tasks.create') }}"
-                        class="mt-5 inline-flex rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
-                        Tambah Tugas
-                    </a>
+                    @if (!empty($filters['search']) || !empty($filters['course_id']) || !empty($filters['status']) || !empty($filters['priority']))
+                        <h3 class="text-lg font-semibold text-gray-900">Tugas tidak ditemukan</h3>
+                        <p class="mt-2 text-sm text-gray-500">Coba ubah atau reset filter pencarian Anda.</p>
+                    @else
+                        <h3 class="text-lg font-semibold text-gray-900">Belum ada tugas</h3>
+                        <p class="mt-2 text-sm text-gray-500">Tambahkan tugas dan tenggatnya agar mudah dipantau.</p>
+                        <a href="{{ route('tasks.create') }}"
+                            class="mt-5 inline-flex rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
+                            Tambah Tugas
+                        </a>
+                    @endif
                 </div>
             @else
                 @php
