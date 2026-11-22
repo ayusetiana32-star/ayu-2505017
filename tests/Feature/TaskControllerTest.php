@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class TaskControllerTest extends TestCase
@@ -32,6 +33,7 @@ class TaskControllerTest extends TestCase
         $task = $user->tasks()->where('title', 'Tugas Algoritma')->firstOrFail();
         $this->assertSame($course->id, $task->course_id);
         $this->assertNull($task->completed_at);
+        $this->get(route('tasks.show', $task))->assertOk()->assertSee('Tugas Algoritma');
         $this->get(route('tasks.edit', $task))->assertOk();
 
         $this->put(route('tasks.update', $task), [
@@ -86,6 +88,7 @@ class TaskControllerTest extends TestCase
             ->assertSee('Basis Data Saya')
             ->assertDontSee('Kelas Privat');
 
+        $this->get(route('tasks.show', $otherTask))->assertForbidden();
         $this->get(route('tasks.edit', $otherTask))->assertForbidden();
         $this->put(route('tasks.update', $otherTask), [
             'course_id' => $course->id,
@@ -120,5 +123,33 @@ class TaskControllerTest extends TestCase
             ->assertSessionHasErrors('course_id');
 
         $this->assertDatabaseCount('tasks', 0);
+    }
+
+    public function test_task_index_query_count_does_not_grow_with_each_task(): void
+    {
+        $user = User::factory()->create();
+        $course = Course::factory()->for($user)->create();
+        Task::factory()->for($course)->create();
+
+        $oneTaskQueryCount = $this->taskIndexQueryCount($user);
+
+        Task::factory()->count(5)->for($course)->create();
+
+        $manyTasksQueryCount = $this->taskIndexQueryCount($user);
+
+        $this->assertSame($oneTaskQueryCount, $manyTasksQueryCount);
+    }
+
+    private function taskIndexQueryCount(User $user): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->actingAs($user)->get(route('tasks.index'))->assertOk();
+
+        $queryCount = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $queryCount;
     }
 }
