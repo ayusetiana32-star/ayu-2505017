@@ -19,12 +19,27 @@ class TaskDeadlineReminderNotification extends Notification
      */
     public function via(User $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(User $notifiable): TaskDeadlineReminderMail
     {
         return (new TaskDeadlineReminderMail($this->task, $this->daysRemaining))
             ->to($notifiable->email);
+    }
+
+    /**
+     * @return array<string, int|string>
+     */
+    public function toDatabase(User $notifiable): array
+    {
+        return [
+            'title' => 'Pengingat deadline tugas',
+            'message' => $this->daysRemaining === 0
+                ? "Deadline {$this->task->title} jatuh hari ini."
+                : "Deadline {$this->task->title} tinggal {$this->daysRemaining} hari lagi.",
+            'task_id' => $this->task->id,
+            'days_remaining' => $this->daysRemaining,
+        ];
     }
 }
