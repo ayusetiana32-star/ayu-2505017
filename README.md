@@ -57,3 +57,26 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Pengingat deadline tugas
+
+Command `tasks:send-reminders` mengirim email untuk tugas yang belum selesai pada H-3, H-1, dan hari H. Pengiriman dicatat di tabel `reminders`, sehingga menjalankan command berulang pada hari yang sama tidak mengirim email ganda.
+
+Untuk pengujian lokal, pastikan `.env` berisi:
+
+```env
+MAIL_MAILER=log
+```
+
+Jalankan migrasi, lalu uji command secara manual:
+
+```bash
+php artisan migrate
+php artisan tasks:send-reminders
+```
+
+Email dengan mailer `log` tidak dikirim sungguhan; isi email ditulis ke `storage/logs/laravel.log`. Scheduler sudah mengatur command ini berjalan setiap jam. Jalankan worker scheduler lokal dengan:
+
+```bash
+php artisan schedule:work
+```
