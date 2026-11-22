@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
@@ -16,13 +17,16 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+    Route::get('/tasks/events', [CalendarController::class, 'events'])->name('tasks.events');
+
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
         ->name('notifications.read');
 
     Route::resource('courses', CourseController::class)->except('show');
     Route::patch('tasks/{task}/toggle-completion', [TaskController::class, 'toggleCompletion'])
         ->name('tasks.toggle-completion');
-    Route::resource('tasks', TaskController::class)->except('show');
+    Route::resource('tasks', TaskController::class);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

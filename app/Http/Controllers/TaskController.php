@@ -65,6 +65,15 @@ class TaskController extends Controller
         return to_route('tasks.index')->with('status', 'Tugas berhasil ditambahkan.');
     }
 
+    public function show(Task $task): View
+    {
+        Gate::authorize('view', $task);
+
+        return view('tasks.show', [
+            'task' => $task->load('course'),
+        ]);
+    }
+
     public function edit(Request $request, Task $task): View
     {
         Gate::authorize('update', $task);

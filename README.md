@@ -80,3 +80,7 @@ Email dengan mailer `log` tidak dikirim sungguhan; isi email ditulis ke `storage
 ```bash
 php artisan schedule:work
 ```
+
+## Kalender deadline
+
+Halaman `/calendar` menampilkan deadline tugas di FullCalendar. Event diambil dari endpoint JSON `GET /tasks/events`, hanya mencakup tugas milik pengguna yang sedang login, dan menggunakan warna mata kuliah. Klik event untuk membuka detail tugas. FullCalendar dimuat dari jsDelivr CDN.
